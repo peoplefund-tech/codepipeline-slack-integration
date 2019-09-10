@@ -1,0 +1,68 @@
+org: strutive07
+app: codepipeline-slack-notifier
+# Welcome to Serverless!
+#
+# This file is the main config file for your service.
+# It's very minimal at this point and uses default values.
+# You can always add more config options for more control.
+# We've included some commented out config examples here.
+# Just uncomment any of them to get that config option.
+#
+# For full config options, check the docs:
+#    docs.serverless.com
+#
+# Happy Coding!
+
+service: codepipeline-slack
+
+environment:
+  SLS_DEBUG: "*"
+
+provider:
+  name: aws
+  runtime: python3.6
+  region: ap-northeast-2
+  stage: ${env:stage}
+  deploymentBucket: ${env:s3_bucket}
+
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "codepipeline:Get*"
+        - "codepipeline:List*"
+      Resource: '*'
+    - Effect: "Allow"
+      Action:
+        - "codebuild:Get*"
+      Resource: '*'
+
+  environment:
+    SLACK_TOKEN: ${env:SLACK_TOKEN}
+    SLACK_BOT_TOKEN: ${env:SLACK_BOT_TOKEN}
+    SLACK_BOT_NAME: ${env:SLACK_BOT_NAME}
+    SLACK_BOT_ICON: ${env:SLACK_BOT_ICON}
+    SLACK_CHANNEL: ${env:SLACK_CHANNEL}
+
+functions:
+  notifier:
+    handler: notifier.run
+    memorySize: 256
+    timeout: 30
+    reservedConcurrency: 1
+    events:
+      - cloudwatchEvent:
+          event:
+            source:
+              - aws.codepipeline
+              - aws.codebuild
+
+plugins:
+  - serverless-python-requirements
+  - serverless-dotenv-plugin
+
+custom:
+  pythonRequirements:
+    fileName: requirements.txt
+    dockerizePip: true
+  dotenv:
+    path: ./.env
