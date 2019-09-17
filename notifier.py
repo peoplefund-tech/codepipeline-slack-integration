@@ -16,6 +16,7 @@ from aws_client import (
     find_revision_info,
     find_pipeline_from_build,
 )
+from ecs_alarm import alarm_task
 
 
 logger = logging.getLogger()
@@ -27,9 +28,10 @@ def run(event, context):
     logger.info(json.dumps(event, indent=2))
     if event['source'] == "aws.codepipeline":
         process_code_pipeline(event)
-    if event['source'] == "aws.codebuild":
+    elif event['source'] == "aws.codebuild":
         process_code_build(event)
-
+    elif event['source'] == "aws.ecs":
+        alarm_task(event)
 
 def process_code_pipeline(event):
     pipeline_execution_id, pipeline_name = get_pipeline_metadata(event)

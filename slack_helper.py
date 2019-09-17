@@ -22,6 +22,9 @@ def find_slack_message_for_update(pipeline_execution_id):
 
         attachments = message.get('attachments', [])
         for attachment in attachments:
+            if 'footer' not in attachment:
+                continue
+                
             if attachment['footer'] == pipeline_execution_id:
                 return message
 

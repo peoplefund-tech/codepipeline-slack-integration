@@ -56,6 +56,16 @@ functions:
               - aws.codepipeline
               - aws.codebuild
 
+  ecs-notifier:
+      handler: notifier.run
+      memorySize: 256
+      timeout: 30
+      reservedConcurrency: 1
+      events:
+        - cloudwatchEvent:
+            event:
+              source:
+                - aws.ecs
 plugins:
   - serverless-python-requirements
   - serverless-dotenv-plugin

@@ -1,3 +1,8 @@
+import logging
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
 def get_pipeline_metadata(event):
     detail = event['detail']
     pipeline_execution_id = detail['execution-id']
@@ -64,4 +69,40 @@ def get_phase_duration(phase):
     if 'duration-in-seconds' in phase:
         return phase['duration-in-seconds']
     else:
+        return None
+
+
+def get_ecs_task_stopped_reason(event):
+    try:
+        return event['detail']['stoppedReason']
+    except Exception:
+        return None
+
+
+def get_ecs_task_infos(event):
+    try:
+        resource = event['resources'][0]
+        task_id = resource.split('/')[-1]
+        cluster_name = resource.split('/')[-2]
+        group = event['detail']['group']
+        task_definition_name = event['detail']['taskDefinitionArn'].split('/')[-1]
+        return cluster_name, group, task_id, task_definition_name
+    except Exception as e:
+        logger.exception('error while parsing event.', exc_info=True)
+        return None, None, None, None
+
+
+def get_ecs_container_infos(event):
+    try:
+        containers = event['detail']['containers']
+        container_infos = []
+
+        for container in containers:
+            container_infos.append({
+                'name': container['name'],
+                'reason': container['reason'],
+            })
+        return container_infos
+    except Exception as e:
+        logger.exception('error while parsing event.', exc_info=True)
         return None
