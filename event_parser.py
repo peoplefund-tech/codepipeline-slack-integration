@@ -98,9 +98,10 @@ def get_ecs_container_infos(event):
         container_infos = []
 
         for container in containers:
+            reason = container.get('reason', '')
             container_infos.append({
                 'name': container['name'],
-                'reason': container['reason'],
+                'reason': reason,
             })
         return container_infos
     except Exception as e:

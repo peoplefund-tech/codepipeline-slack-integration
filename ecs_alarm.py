@@ -9,6 +9,7 @@ from slack_helper import (
     find_channel_id
 )
 
+DO_NOT_ALARM_GROUP = ['']
 
 def alarm_task(event):
     task_stopped_reason = get_ecs_task_stopped_reason(event)
@@ -21,6 +22,8 @@ def alarm_task(event):
     else:
         channel_id = find_channel_id(SLACK_CHANNEL)
         cluster_name, group, task_id, task_definition_name = get_ecs_task_infos(event)
+        if group.split(':')[-1] in DO_NOT_ALARM_GROUP:
+            return
 
         link = "https://ap-northeast-2.console.aws.amazon.com" \
                "/ecs/home?region=ap-northeast-2#/clusters/{}/tasks/{}/details".format(
@@ -88,3 +91,4 @@ def alarm_task(event):
             channel_id,
             message
         )
+
