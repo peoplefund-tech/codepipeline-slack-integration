@@ -5,7 +5,6 @@ import logging
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-slack_client = SlackClient(os.getenv("SLACK_TOKEN"))
 sc_bot = SlackClient(os.getenv("SLACK_BOT_TOKEN"))
 SLACK_CHANNEL = os.getenv("SLACK_CHANNEL", "builds_test")
 SLACK_BOT_NAME = os.getenv("SLACK_BOT_NAME", "PipelineBot")
@@ -17,7 +16,7 @@ def find_slack_message_for_update(pipeline_execution_id):
     slack_messages = get_slack_messages_from_channel(channel_id=channel_id)
 
     for message in slack_messages:
-        if message.get('username', '') != SLACK_BOT_NAME:
+        if 'bot_profile' not in message:
             continue
 
         attachments = message.get('attachments', [])
@@ -32,7 +31,7 @@ def find_slack_message_for_update(pipeline_execution_id):
 
 
 def find_channel_id(channel_name):
-    res = slack_client.api_call("conversations.list", exclude_archived=1)
+    res = sc_bot.api_call("conversations.list", exclude_archived=1)
 
     if 'error' in res:
         if not isinstance(res['error'], str):
@@ -51,7 +50,7 @@ def find_channel_id(channel_name):
 
 
 def get_slack_messages_from_channel(channel_id):
-    res = slack_client.api_call('conversations.history', channel=channel_id)
+    res = sc_bot.api_call('conversations.history', channel=channel_id)
 
     if 'error' in res:
         if not isinstance(res['error'], str):
@@ -64,7 +63,7 @@ def get_slack_messages_from_channel(channel_id):
 
 
 def update_message(channel_id, message_id, attachments):
-    res = slack_client.api_call(
+    res = sc_bot.api_call(
         "chat.update",
         channel=channel_id,
         ts=message_id,
@@ -84,7 +83,7 @@ def update_message(channel_id, message_id, attachments):
 
 
 def send_message(channel_id, attachments):
-    res = slack_client.api_call(
+    res = sc_bot.api_call(
         "chat.postMessage",
         channel=channel_id,
         icon_emoji=SLACK_BOT_ICON,
